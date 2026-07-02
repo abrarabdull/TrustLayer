@@ -1,0 +1,104 @@
+{% extends 'cases/base.html' %}
+
+{% block page_heading %}AI Analysis Result{% endblock %}
+{% block page_subtitle %}
+<p class="page-subtitle">Case {{ case.transaction_id }} &middot; {{ case.customer_name }}</p>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card panel-card ai-result-card mb-4">
+      <div class="card-header panel-header ai-header">
+        <h2><i class="bi bi-stars"></i> AI Co-Pilot Analysis</h2>
+        {% if result.is_mock %}
+        <span class="badge badge-info">Mock Analysis</span>
+        {% else %}
+        <span class="badge badge-low">OpenAI Powered</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <div class="ai-score-row">
+          <div class="ai-score-circle score-{{ result.risk_level|lower }}">
+            <span class="score-number">{{ result.risk_score }}</span>
+            <span class="score-label">Risk Score</span>
+          </div>
+          <div class="ai-score-meta">
+            <span class="badge badge-{{ result.risk_level|lower }}">{{ result.risk_level }} Risk</span>
+            <p class="mb-0 mt-2 text-muted">Computed by rule engine + AI interpretation</p>
+          </div>
+        </div>
+
+        <div class="analysis-section">
+          <h3><i class="bi bi-journal-text"></i> Analyst Summary</h3>
+          <p>{{ result.analyst_summary }}</p>
+        </div>
+
+        <div class="analysis-section">
+          <h3><i class="bi bi-exclamation-diamond"></i> Why This Case Is Suspicious</h3>
+          <ul class="risk-indicators-list">
+            {% for reason in result.suspicious_reasons %}
+            <li><i class="bi bi-dot"></i> {{ reason }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="analysis-section">
+          <h3><i class="bi bi-shield-check"></i> Risk Classification Rationale</h3>
+          <p>{{ result.low_medium_rationale }}</p>
+        </div>
+
+        <div class="analysis-section">
+          <h3><i class="bi bi-signpost-split"></i> Recommended Next Action</h3>
+          <div class="recommendation-box">
+            <i class="bi bi-lightbulb"></i>
+            <strong>{{ result.recommended_action }}</strong>
+          </div>
+        </div>
+
+        {% if result.customer_message %}
+        <div class="analysis-section">
+          <h3><i class="bi bi-chat-square-text"></i> Suggested Customer Notification</h3>
+          <div class="customer-message-box">
+            <p>{{ result.customer_message }}</p>
+            <small class="text-muted">No sensitive account details included.</small>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card panel-card mb-4">
+      <div class="card-header panel-header">
+        <h2>Take Action</h2>
+      </div>
+      <div class="card-body">
+        <p class="text-muted small">Review the AI analysis and choose your next step. You retain final decision authority.</p>
+        <form method="post" action="{% url 'mark_safe' case.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success w-100 mb-2">
+            <i class="bi bi-check-lg"></i> Mark as Safe
+          </button>
+        </form>
+        <form method="post" action="{% url 'escalate_case' case.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-danger w-100 mb-2">
+            <i class="bi bi-arrow-up-circle"></i> Escalate to Investigation
+          </button>
+        </form>
+        <form method="post" action="{% url 'send_notification' case.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary w-100 mb-2">
+            <i class="bi bi-envelope"></i> Send Customer Verification
+          </button>
+        </form>
+        <a href="{% url 'case_detail' case.pk %}" class="btn btn-outline-secondary w-100">
+          <i class="bi bi-arrow-left"></i> Back to Case
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

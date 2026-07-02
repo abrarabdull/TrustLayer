@@ -1,0 +1,53 @@
+{% extends 'cases/base.html' %}
+
+{% block page_heading %}Notifications{% endblock %}
+{% block page_subtitle %}
+<p class="page-subtitle">Simulated customer verification notifications (demo only).</p>
+{% endblock %}
+
+{% block content %}
+<div class="alert alert-info">
+  <i class="bi bi-info-circle"></i>
+  <strong>Demo Mode:</strong> No real SMS or email is sent. Notifications are simulated for hackathon demonstration purposes.
+</div>
+
+<div class="card panel-card">
+  <div class="card-header panel-header">
+    <h2><i class="bi bi-envelope-check"></i> Sent Verification Notifications</h2>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover cases-table mb-0">
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>Customer</th>
+          <th>Channel</th>
+          <th>Status</th>
+          <th>Message Preview</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for case in sent_cases %}
+        <tr>
+          <td class="font-mono">{{ case.transaction_id }}</td>
+          <td>{{ case.customer_name }}</td>
+          <td>{{ case.get_channel_display }}</td>
+          <td><span class="badge badge-info">{{ case.get_status_display }}</span></td>
+          <td class="text-truncate" style="max-width: 300px;">{{ case.customer_message|truncatewords:15 }}</td>
+          <td>
+            <a href="{% url 'case_detail' case.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4">
+            No verification notifications sent yet. Analyze a low or medium risk case and click "Send Customer Verification Notification."
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,265 @@
+{% extends 'cases/base.html' %}
+
+{% block page_heading %}Case {{ case.transaction_id }}{% endblock %}
+{% block page_subtitle %}
+<p class="page-subtitle">{{ case.customer_name }} &middot; {{ case.get_channel_display }} &middot; {{ case.amount|floatformat:2 }}</p>
+{% endblock %}
+
+{% block content %}
+{% if show_ai_warning %}
+<div class="alert alert-danger alert-high-risk" role="alert">
+  <i class="bi bi-shield-exclamation"></i>
+  <strong>High-Risk Alert:</strong>
+  High-risk cases are not handled by the AI assistant and should be reviewed by the employee or Investigation team.
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-8">
+  <div class="card panel-card mb-4">
+    <div class="card-header panel-header">
+      <h2><i class="bi bi-file-earmark-text"></i> Case Overview</h2>
+      <span class="badge {{ case.risk_badge_class }}">{{ case.get_initial_risk_level_display }} Risk</span>
+    </div>
+    <div class="card-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Transaction ID</span>
+          <span class="detail-value font-mono">{{ case.transaction_id }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Customer Name</span>
+          <span class="detail-value">{{ case.customer_name }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Customer ID</span>
+          <span class="detail-value font-mono">{{ case.customer_id }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Status</span>
+          <span class="badge {{ case.status_badge_class }}">{{ case.get_status_display }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Assigned To</span>
+          <span class="detail-value">{{ case.assigned_to }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Initial Risk Level</span>
+          <span class="badge {{ case.risk_badge_class }}">{{ case.get_initial_risk_level_display }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Risk Score</span>
+          <span class="detail-value">{{ case.risk_score }}/100</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card panel-card mb-4">
+    <div class="card-header panel-header">
+      <h2><i class="bi bi-credit-card"></i> Transaction Details</h2>
+    </div>
+    <div class="card-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Amount</span>
+          <span class="detail-value amount-highlight">{{ case.amount|floatformat:2 }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Average Customer Amount</span>
+          <span class="detail-value">{{ case.average_customer_amount|floatformat:2 }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Transaction Time</span>
+          <span class="detail-value">{{ case.transaction_time|date:"M d, Y H:i" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Location</span>
+          <span class="detail-value">{{ case.location }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Usual Location</span>
+          <span class="detail-value">{{ case.usual_location }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Channel</span>
+          <span class="detail-value">{{ case.get_channel_display }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Device ID</span>
+          <span class="detail-value font-mono">{{ case.device_id|default:"—" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">New Device</span>
+          <span class="detail-value">
+            {% if case.is_new_device %}<span class="text-warning"><i class="bi bi-exclamation-circle"></i> Yes</span>{% else %}No{% endif %}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Beneficiary Type</span>
+          <span class="detail-value">{{ case.beneficiary_type }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">New Beneficiary</span>
+          <span class="detail-value">
+            {% if case.is_new_beneficiary %}<span class="text-warning"><i class="bi bi-exclamation-circle"></i> Yes</span>{% else %}No{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card panel-card mb-4">
+    <div class="card-header panel-header">
+      <h2><i class="bi bi-person-lines-fill"></i> Customer Behavior Summary</h2>
+    </div>
+    <div class="card-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Failed Login Attempts</span>
+          <span class="detail-value {% if case.failed_login_attempts >= 3 %}text-danger{% endif %}">{{ case.failed_login_attempts }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Previous Fraud Flag</span>
+          <span class="detail-value">
+            {% if case.previous_fraud_flag %}<span class="text-danger"><i class="bi bi-flag-fill"></i> Yes</span>{% else %}No{% endif %}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Location Deviation</span>
+          <span class="detail-value">
+            {% if case.location != case.usual_location %}<span class="text-warning">Unusual</span>{% else %}Normal{% endif %}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Amount vs Average</span>
+          <span class="detail-value">{{ case.amount_ratio }}x typical</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card panel-card mb-4">
+    <div class="card-header panel-header">
+      <h2><i class="bi bi-radar"></i> Existing Monitoring Result</h2>
+    </div>
+    <div class="card-body">
+      <p class="mb-2">Alert generated by upstream fraud detection system (SAS/PRM equivalent).</p>
+      <div class="monitoring-result">
+        <div class="result-row">
+          <span>Detection System</span>
+          <strong>Enterprise Fraud Monitor v4.2</strong>
+        </div>
+        <div class="result-row">
+          <span>Alert Type</span>
+          <strong>Suspicious Transaction Pattern</strong>
+        </div>
+        <div class="result-row">
+          <span>Initial Classification</span>
+          <span class="badge {{ case.risk_badge_class }}">{{ case.get_initial_risk_level_display }}</span>
+        </div>
+        <div class="result-row">
+          <span>Rule Engine Score</span>
+          <strong>{{ assessment.score }}/100</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card panel-card mb-4">
+    <div class="card-header panel-header">
+      <h2><i class="bi bi-list-check"></i> Risk Indicators</h2>
+    </div>
+    <div class="card-body">
+      <ul class="risk-indicators-list">
+        {% for reason in assessment.reasons %}
+        <li><i class="bi bi-dot"></i> {{ reason }}</li>
+        {% endfor %}
+      </ul>
+      <p class="text-muted small mt-2 mb-0">Recommended action: <strong>{{ assessment.recommended_action }}</strong></p>
+    </div>
+  </div>
+  </div>
+
+  <div class="col-lg-4">
+  <div class="card panel-card ai-panel {% if case.is_high_risk %}ai-panel-disabled{% endif %}">
+    <div class="card-header panel-header ai-header">
+      <h2><i class="bi bi-robot"></i> AI Co-Pilot</h2>
+    </div>
+    <div class="card-body">
+      {% if case.is_high_risk %}
+      <div class="ai-disabled-notice">
+        <i class="bi bi-lock-fill"></i>
+        <p>AI automation is disabled for high-risk cases. Only manual review actions are available.</p>
+      </div>
+      {% else %}
+      <p class="text-muted">The AI Co-Pilot can analyze this case, summarize risk indicators, and suggest next steps. Final decision remains with you.</p>
+      {% if case.ai_summary %}
+      <div class="ai-preview">
+        <h6>Previous Analysis</h6>
+        <p class="small">{{ case.ai_summary|truncatewords:40 }}</p>
+        <a href="{% url 'analyze_case' case.pk %}" class="btn btn-sm btn-outline-primary">Re-analyze</a>
+      </div>
+      {% else %}
+      <a href="{% url 'analyze_case' case.pk %}" class="btn btn-ai w-100 mb-3">
+        <i class="bi bi-stars"></i> Analyze with AI Co-Pilot
+      </a>
+      {% endif %}
+      {% endif %}
+
+      <hr>
+
+      <h6 class="actions-title">Case Actions</h6>
+      <div class="action-buttons">
+        {% if case.is_high_risk %}
+        <form method="post" action="{% url 'escalate_case' case.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger w-100 mb-2">
+            <i class="bi bi-arrow-up-circle"></i> Escalate to Investigation
+          </button>
+        </form>
+        <button class="btn btn-outline-secondary w-100" disabled>
+          <i class="bi bi-person-check"></i> Manual Review Required
+        </button>
+        {% else %}
+        {% if not case.ai_summary %}
+        <a href="{% url 'analyze_case' case.pk %}" class="btn btn-ai w-100 mb-2">
+          <i class="bi bi-stars"></i> Analyze with AI Co-Pilot
+        </a>
+        {% endif %}
+        <form method="post" action="{% url 'mark_safe' case.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success w-100 mb-2">
+            <i class="bi bi-check-lg"></i> Mark as Safe
+          </button>
+        </form>
+        <form method="post" action="{% url 'escalate_case' case.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-danger w-100 mb-2">
+            <i class="bi bi-arrow-up-circle"></i> Escalate to Investigation
+          </button>
+        </form>
+        <form method="post" action="{% url 'send_notification' case.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-primary w-100">
+            <i class="bi bi-envelope"></i> Send Customer Verification Notification
+          </button>
+        </form>
+        {% endif %}
+      </div>
+
+      {% if case.customer_message %}
+      <div class="notification-preview mt-3">
+        <h6><i class="bi bi-chat-dots"></i> Customer Message Preview</h6>
+        <p class="small">{{ case.customer_message }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary w-100 mt-3">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+  </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'cases/base.html' %}
+
+{% block page_heading %}AI Anti-Fraud Co-Pilot{% endblock %}
+{% block page_subtitle %}
+<p class="page-subtitle">Assisting fraud monitoring teams with lower-risk and gray-area alerts after initial detection.</p>
+{% endblock %}
+
+{% block content %}
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-icon stat-total"><i class="bi bi-bell"></i></div>
+    <div class="stat-body">
+      <span class="stat-value">{{ stats.total }}</span>
+      <span class="stat-label">Total Alerts</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-low"><i class="bi bi-check-circle"></i></div>
+    <div class="stat-body">
+      <span class="stat-value">{{ stats.low }}</span>
+      <span class="stat-label">Low Risk</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-medium"><i class="bi bi-exclamation-triangle"></i></div>
+    <div class="stat-body">
+      <span class="stat-value">{{ stats.medium }}</span>
+      <span class="stat-label">Medium Risk</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-high"><i class="bi bi-shield-exclamation"></i></div>
+    <div class="stat-body">
+      <span class="stat-value">{{ stats.high }}</span>
+      <span class="stat-label">High Risk</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-pending"><i class="bi bi-hourglass-split"></i></div>
+    <div class="stat-body">
+      <span class="stat-value">{{ stats.pending }}</span>
+      <span class="stat-label">Pending Review</span>
+    </div>
+  </div>
+</div>
+
+<div class="card panel-card">
+  <div class="card-header panel-header">
+    <h2><i class="bi bi-funnel"></i> Fraud Alert Queue</h2>
+    <form method="get" class="filter-form" id="filterForm">
+      <select name="risk" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Risk Levels</option>
+        {% for value, label in risk_choices %}
+        <option value="{{ value }}" {% if risk_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Statuses</option>
+        {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="channel" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Channels</option>
+        {% for value, label in channel_choices %}
+        <option value="{{ value }}" {% if channel_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      {% if risk_filter or status_filter or channel_filter %}
+      <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover cases-table mb-0">
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>Customer Name</th>
+          <th>Amount</th>
+          <th>Channel</th>
+          <th>Initial Risk Level</th>
+          <th>Case Status</th>
+          <th>Assigned To</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for case in cases %}
+        <tr>
+          <td class="font-mono">{{ case.transaction_id }}</td>
+          <td>{{ case.customer_name }}</td>
+          <td>{{ case.amount|floatformat:2 }}</td>
+          <td>{{ case.get_channel_display }}</td>
+          <td><span class="badge {{ case.risk_badge_class }}">{{ case.get_initial_risk_level_display }}</span></td>
+          <td><span class="badge {{ case.status_badge_class }}">{{ case.get_status_display }}</span></td>
+          <td>{{ case.assigned_to }}</td>
+          <td>
+            <a href="{% url 'case_detail' case.pk %}" class="btn btn-sm btn-primary">View Case</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-4">
+            No cases found. Run <code>python manage.py seed_cases</code> to load demo data.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

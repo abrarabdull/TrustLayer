@@ -1,0 +1,84 @@
+{% extends 'cases/base.html' %}
+
+{% block page_heading %}AI Co-Pilot{% endblock %}
+{% block page_subtitle %}
+<p class="page-subtitle">Intelligent assistant for low and medium risk fraud case triage.</p>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card panel-card mb-4">
+      <div class="card-header panel-header ai-header">
+        <h2><i class="bi bi-robot"></i> How AI Co-Pilot Works</h2>
+      </div>
+      <div class="card-body">
+        <p>The AI Anti-Fraud Co-Pilot operates <strong>after</strong> your existing fraud detection systems (SAS, PRM, etc.) generate alerts. It does not replace those systems.</p>
+
+        <div class="copilot-steps">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div>
+              <h5>Alert Received</h5>
+              <p>Upstream monitoring flags a suspicious transaction and routes it to the analyst queue.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div>
+              <h5>Risk Classification</h5>
+              <p>The rule engine scores the case. High-risk alerts bypass AI automation entirely.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div>
+              <h5>AI Analysis</h5>
+              <p>For low/medium cases, the Co-Pilot summarizes indicators, explains risk, and recommends actions.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">4</div>
+            <div>
+              <h5>Analyst Decision</h5>
+              <p>The employee reviews AI output and makes the final call — mark safe, escalate, or notify customer.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card panel-card">
+      <div class="card-header panel-header">
+        <h2><i class="bi bi-shield-x"></i> High-Risk Policy</h2>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-danger mb-0">
+          <strong>High-risk cases are never handled automatically.</strong>
+          They remain assigned to the employee or Investigation team. AI analysis and customer notification features are disabled for these alerts.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="stat-card mb-3">
+      <div class="stat-icon stat-pending"><i class="bi bi-hourglass"></i></div>
+      <div class="stat-body">
+        <span class="stat-value">{{ pending_ai }}</span>
+        <span class="stat-label">Awaiting AI Analysis</span>
+      </div>
+    </div>
+    <div class="stat-card mb-4">
+      <div class="stat-icon stat-low"><i class="bi bi-check2-all"></i></div>
+      <div class="stat-body">
+        <span class="stat-value">{{ analyzed }}</span>
+        <span class="stat-label">Cases Analyzed</span>
+      </div>
+    </div>
+    <a href="{% url 'dashboard' %}?risk=MEDIUM" class="btn btn-ai w-100">
+      <i class="bi bi-search"></i> Review Medium-Risk Cases
+    </a>
+  </div>
+</div>
+{% endblock %}
