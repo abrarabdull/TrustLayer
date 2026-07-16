@@ -7,6 +7,11 @@ from .services.ai_analyzer import analyze_case
 from .services.notification_service import prepare_verification_notification
 from .services.risk_engine import assess_case
 
+from .services.n8n_service import send_demo_case_to_n8n
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .services.elevenlabs_service import get_conversation_transcript
 
 def _apply_filters(queryset, request):
   risk = request.GET.get('risk', '')
@@ -164,3 +169,108 @@ def notifications_page(request):
 def about_page(request):
   context = {'page_title': 'About MVP'}
   return render(request, 'cases/about.html', context)
+@require_POST
+def start_demo_call(request):
+    try:
+        response = send_demo_case_to_n8n()
+
+        data = response.json()
+
+        case = FraudCase.objects.get(
+            transaction_id="TXN-2026-00011"
+        )
+
+        case.elevenlabs_conversation_id = data.get(
+            "conversation_id",
+            ""
+        )
+        case.verification_transcript = ""
+        case.save(update_fields=[
+            "elevenlabs_conversation_id",
+            "verification_transcript",
+            "updated_at",
+        ])
+
+        messages.success(
+            request,
+            "تم إرسال الحالة وبدء مكالمة التحقق."
+        )
+
+    except Exception as exc:
+        messages.error(
+            request,
+            f"تعذر بدء المكالمة: {exc}"
+        )
+
+    return redirect("dashboard")
+
+@csrf_exempt
+@require_POST
+def save_transcript(request):
+    try:
+        data = json.loads(request.body)
+        transaction_id = data.get("transaction_id")
+        transcript = data.get("transcript", "")
+
+        if not transaction_id:
+            return JsonResponse(
+                {"success": False, "error": "transaction_id is required"},
+                status=400,
+            )
+
+        case = FraudCase.objects.get(transaction_id=transaction_id)
+        case.verification_transcript = transcript
+        case.save(update_fields=["verification_transcript", "updated_at"])
+
+        return JsonResponse({
+            "success": True,
+            "transaction_id": transaction_id,
+        })
+
+    except FraudCase.DoesNotExist:
+        return JsonResponse(
+            {"success": False, "error": "Transaction not found"},
+            status=404,
+        )
+
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {"success": False, "error": "Invalid JSON"},
+            status=400,
+        )
+    
+@require_POST
+def load_transcript(request, pk):
+    case = get_object_or_404(FraudCase, pk=pk)
+
+    if not case.elevenlabs_conversation_id:
+        messages.error(request, "لا يوجد رقم محادثة محفوظ لهذه الحالة.")
+        return redirect("case_detail", pk=pk)
+
+    try:
+        transcript = get_conversation_transcript(
+            case.elevenlabs_conversation_id
+        )
+
+        if not transcript:
+            messages.warning(
+                request,
+                "المكالمة لم تنتهِ بعد أو الـTranscript غير جاهز."
+            )
+            return redirect("case_detail", pk=pk)
+
+        case.verification_transcript = transcript
+        case.save(update_fields=[
+            "verification_transcript",
+            "updated_at",
+        ])
+
+        messages.success(request, "تم تحميل آخر مكالمة.")
+
+    except Exception as exc:
+        messages.error(
+            request,
+            f"تعذر تحميل المكالمة: {exc}"
+        )
+
+    return redirect("case_detail", pk=pk)

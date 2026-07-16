@@ -4,10 +4,14 @@ Django settings for fraud_copilot project.
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = 'django-insecure-hackathon-mvp-change-in-production'
+
 
 DEBUG = True
 
@@ -21,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'cases',
+   
 ]
 
 MIDDLEWARE = [
@@ -77,3 +82,7 @@ STATICFILES_DIRS = [BASE_DIR / 'cases' / 'static']
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+
+N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "")
+
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")

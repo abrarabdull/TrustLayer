@@ -64,6 +64,13 @@ class FraudCase(models.Model):
   ai_summary = models.TextField(blank=True)
   ai_recommendation = models.TextField(blank=True)
   customer_message = models.TextField(blank=True)
+
+  verification_transcript = models.TextField(blank=True)
+  elevenlabs_conversation_id = models.CharField(
+    max_length=150,
+    blank=True,
+    )
+
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now=True)
 

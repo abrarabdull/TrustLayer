@@ -13,4 +13,15 @@ urlpatterns = [
   path('ai-copilot/', views.ai_copilot_info, name='ai_copilot'),
   path('notifications/', views.notifications_page, name='notifications'),
   path('about/', views.about_page, name='about'),
+  path("demo-call/", views.start_demo_call, name="start_demo_call"),
+  path(
+    "save-transcript/",
+    views.save_transcript,
+    name="save_transcript",
+),
+path(
+    "cases/<int:pk>/load-transcript/",
+    views.load_transcript,
+    name="load_transcript",
+),
 ]

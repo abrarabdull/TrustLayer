@@ -47,6 +47,12 @@
 <div class="card panel-card">
   <div class="card-header panel-header">
     <h2><i class="bi bi-funnel"></i> Fraud Alert Queue</h2>
+    <form method="post" action="{% url 'start_demo_call' %}">
+      {% csrf_token %}
+      <button class="btn btn-success">
+        📞 Start AI Verification Demo
+      </button>
+    </form>
     <form method="get" class="filter-form" id="filterForm">
       <select name="risk" class="form-select form-select-sm" onchange="this.form.submit()">
         <option value="">All Risk Levels</option>

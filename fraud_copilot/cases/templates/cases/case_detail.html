@@ -182,6 +182,28 @@
   </div>
 
   <div class="col-lg-4">
+    <form method="post" action="{% url 'load_transcript' case.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline-primary w-100 mb-3">
+        Load Latest Transcript
+      </button>
+    </form>
+    {% if case.verification_transcript %}
+    <div class="card panel-card mb-4">
+      <div class="card-header panel-header">
+        <h2>
+          <i class="bi bi-telephone"></i>
+          Customer Verification Call
+        </h2>
+      </div>
+
+      <div class="card-body">
+        <pre style="white-space: pre-wrap;">{{ case.verification_transcript }}</pre>
+      </div>
+    </div>
+    {% endif %}
+
+
   <div class="card panel-card ai-panel {% if case.is_high_risk %}ai-panel-disabled{% endif %}">
     <div class="card-header panel-header ai-header">
       <h2><i class="bi bi-robot"></i> AI Co-Pilot</h2>
